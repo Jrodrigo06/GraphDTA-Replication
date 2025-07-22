@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+# utils/tokenizer.py
 
 AMINO_ACIDS = {
     'A': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5,
@@ -9,7 +9,7 @@ AMINO_ACIDS = {
 }
 
 # Tokenizer function to a sequence of amino acids into a number
-def tokenizer(protein: str, max_length=1000):
+def tokenizer(protein: str, max_length: int = 1000):
     protein = protein.upper()
 
     encoded = [AMINO_ACIDS.get(aa, 21) for aa in protein[:max_length]]
