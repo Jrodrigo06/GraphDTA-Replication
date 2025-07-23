@@ -17,7 +17,7 @@
 )
 
 = Introduction
-#lorem(20)
+This paper is a math-first walkthrough of reimplementing GraphDTA (Nguyen et al.) to learn how deep learning models can predict drug–target binding affinity. Instead of summarizing results from the original work, I rebuild the full pipeline—tokenizing protein sequences, representing small molecules as graphs, encoding them with CNNs and Graph Neural Networks, and combining the learned embeddings for regression. Along the way I unpack the math behind 1D convolutions, global pooling, message passing on molecular graphs, and the loss/objective used for affinity prediction. 
 
 = Equations
 
