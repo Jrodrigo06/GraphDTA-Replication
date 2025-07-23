@@ -1,6 +1,7 @@
 import torch 
 from torch import nn
 
+# Protein encoder class - CNN for protein sequences
 class ProteinEncoder(nn.Module):
     
     def __init__(self, conv_channels: int = 64, sequence_length: int = 1000, batch_size: int = 32, output_dim: int = 128):
