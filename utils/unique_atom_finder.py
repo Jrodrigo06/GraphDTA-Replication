@@ -1,6 +1,15 @@
 from rdkit import Chem
 
 def extract_unique_atom_symbols(file_path: str):
+    '''
+    Extracts unique atom symbols from a file containing SMILES strings.
+    
+    Args:
+        file_path (str): Path to the file containing SMILES strings.
+        Returns:
+            List[str]: Sorted list of unique atom symbols.
+            '''
+    
     atom_symbols = set()
 
     with open(file_path, 'r') as f:
