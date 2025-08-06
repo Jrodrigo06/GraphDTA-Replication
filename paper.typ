@@ -17,76 +17,20 @@
 )
 
 = Introduction
-This paper is a math-first walkthrough of reimplementing GraphDTA (Nguyen et al.) to learn how deep learning models can predict drug–target binding affinity. Instead of summarizing results from the original work, I rebuild the full pipeline—tokenizing protein sequences, representing small molecules as graphs, encoding them with CNNs and Graph Neural Networks, and combining the learned embeddings for regression. Along the way I unpack the math behind 1D convolutions, global pooling, message passing on molecular graphs, and the loss/objective used for affinity prediction. 
+This paper is a math-first walkthrough of reimplementing GraphDTA (Nguyen et al.) to learn how deep learning models can predict drug–target binding affinity. Instead of summarizing results from the original work, I rebuild the full pipeline, tokenizing protein sequences, representing small molecules as graphs, encoding them with CNNs and Graph Neural Networks, and combining the learned embeddings for regression. Along the way I unpack the math behind 1D convolutions, global pooling, message passing on molecular graphs, and the loss/objective used for affinity prediction.  
 
-= Equations
-
-The template uses #link("https://typst.app/universe/package/i-figured/")[`i-figured`] for labeling equations. Equations will be numbered only if they are labelled. Here is an equation with a label:
-
-$
-  sum_(k=1)^n k = (n(n+1)) / 2
-$<equation>
-
-We can reference it by `@eq:label` like this: @eq:equation, i.e., we need to prepend the label with `eq:`. The number of an equation is determined by the section it is in, i.e. the first digit is the section number and the second digit is the equation number within that section.
-
-Here is an equation without a label:
-
-$
-  exp(x) = sum_(n=0)^oo (x^n) / n!
-$
-
-As we can see, it is not numbered.
+= High Level Overview
+dadada
 
 = Theorems
 
-The template uses #link("https://typst.app/universe/package/great-theorems/")[`great-theorems`] for theorems. Here is an example of a theorem:
-
-#theorem(title: "Example Theorem")[
-  This is an example theorem.
-]<th:example>
-#proof[
-  This is the proof of the example theorem.
-]
-
-
-We also provide `definition`, `lemma`, `remark`, `example`, and `question`s among others. Here is an example of a definition:
-
-#definition(title: "Example Definition")[
-  This is an example definition.
-]
-
-#question(title: "Custom mathblock?")[
-  How do you define a custom mathblock?
-]
-
-#let answer = my-mathblock(
-  blocktitle: "Answer",
-  bodyfmt: text.with(style: "italic"),
-)
-
-#answer[
-  You can define a custom mathblock like this:
-  ```typst
-  #let answer = my-mathblock(
-    blocktitle: "Answer",
-    bodyfmt: text.with(style: "italic"),
-  )
-  ```
-]
-
-Similar as for the equations, the numbering of the theorems is determined by the section they are in. We can reference theorems by `@label` like this: @th:example.
-
-
-
-#lorem(50)
-
-
-// Create appendix section
-#show: appendices
-=
-
-If you have appendices, you can add them after `#show: appendices`. The appendices are started with an empty heading `=` and will be numbered alphabetically. Any appendix can also have different subsections.
-
-== Appendix section
-
-#lorem(100)
+= Protein encoding
+  == One Hot Encoding
+  So we use one-hot encoding to represent amino acids in protein sequences. How the function works is that ita takes a sequence of amino acids and converts each amino acid into a one-hot encoded vector. The amino acids are represented by a number in a dictionary corresponding to their index in the amino acid vocabulary. The one-hot encoded vector is length 22, where the index corresponding to the amino acid is set to 1, and all other indices are set to 0.
+  === How and why one-hot encoding works
+  So one-hot encoding is a way to represent categorical data as binary vectors. Each category is represented by a vector where one element is set to 1 (the "hot" part/the category that is being represented) and all other elements in the vector are set to 0. It works for neural networks because it allows the model to learn relationships between different categories without assuming any ordinal relationship between them. In the context of protein sequences, one-hot encoding allows us to represent each amino acid as a unique vector, which can then be processed by neural networks. One-hot encoding works for amino acids really well as the feature space is small (22 amino acids) and the relationships between them are not ordinal.
+ 
+= Drug encoding
+   == SMILES to Graph representation
+   Following the paper I used RDKit to convert SMILES compounds into molecular graphs. Each node in the graph is represented by a vector of features with most being one-hot encoded. The features include the atom symbol, the number of adjacent hydrogens, the number of adjacent atoms, the implicit value of the atom, and whether the atom is in a aromatic structure. 
+    == Graph Neural Networks

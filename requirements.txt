@@ -1,0 +1,2 @@
+torch
+conda-forge rdkit

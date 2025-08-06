@@ -14,6 +14,14 @@ VOCAB_SIZE = 22
 
 # Tokenizer function to a sequence of amino acids into a one-hot encoded tensor
 def tokenizer(protein: str, max_length: int = 1000):
+    '''
+    Tokenizes a protein sequence into a one-hot encoded tensor.
+    
+    Args:
+        protein (str): Protein sequence.
+        max_length (int): Maximum length of the sequence. Sequences longer than this will be truncated, and shorter ones will be padded.
+        Returns:
+            torch.Tensor: One-hot encoded tensor (long) of shape (max_length, VOCAB_SIZE).'''
     protein = protein.upper()
 
     indices = [AMINO_ACIDS.get(aa, 21) for aa in protein[:max_length]]
