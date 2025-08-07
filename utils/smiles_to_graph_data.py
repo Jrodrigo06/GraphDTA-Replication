@@ -60,7 +60,7 @@ def one_hot_encode_symbol(symbol: str) -> List[int]:
     Returns:
         List[int]: One-hot encoded vector for the atom symbol.
     '''
-    ATOM_LIST = ['Br', 'C', 'Cl', 'F', 'I', 'N', 'O', 'P', 'S']
+    ATOM_LIST = ['Br', 'C', 'Cl', 'F', 'I', 'N', 'O', 'P', 'S'] 
     one_hot_vector = [0] * len(ATOM_LIST)
     if symbol in ATOM_LIST:
         index = ATOM_LIST.index(symbol)

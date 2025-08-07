@@ -1,2 +1,3 @@
 torch
 conda-forge rdkit
+pytest
