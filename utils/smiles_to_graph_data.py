@@ -17,8 +17,22 @@ def smiles_to_graph_data(smiles: str) -> Tuple[np.ndarray, np.ndarray]: # type: 
 
     atoms = mol.GetAtoms()
 
+    node_features = []
     for atom in atoms:
-        symbol = atom.GetSymbol()
+        atom_features = get_atom_features(atom)
+        node_features.append(atom_features)
+    node_features = np.array(node_features, dtype=np.float32)
+
+    edges = []
+    for bond in mol.GetBonds():
+        start = bond.GetBeginAtomIdx()
+        end = bond.GetEndAtomIdx()
+        edges.append((start, end))
+        edges.append((end, start))
+    edge_index = np.array(edges).T
+
+    return node_features, edge_index
+
 
 def get_atom_features(atom) -> List[int]:
     '''
