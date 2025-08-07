@@ -21,9 +21,6 @@ def extract_unique_atom_symbols(file_path: str):
                 continue
             smiles = line[2]
             mol = Chem.MolFromSmiles(smiles)
-            if mol is None:
-                print(f"Invalid SMILES on line {i}: {smiles}")
-                continue
             for atom in mol.GetAtoms():
                 atom_symbols.add(atom.GetSymbol())
 

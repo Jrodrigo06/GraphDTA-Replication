@@ -33,4 +33,5 @@ dadada
 = Drug encoding
    == SMILES to Graph representation
    Following the paper I used RDKit to convert SMILES compounds into molecular graphs. Each node in the graph is represented by a vector of features with most being one-hot encoded. The features include the atom symbol, the number of adjacent hydrogens, the number of adjacent atoms, the implicit value of the atom, and whether the atom is in a aromatic structure. 
-    == Graph Neural Networks
+
+= Graph Neural Networks
