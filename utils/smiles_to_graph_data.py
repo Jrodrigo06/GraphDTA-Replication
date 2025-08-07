@@ -1,4 +1,5 @@
 from rdkit import Chem
+from rdkit.Chem.rdchem import ValenceType
 import numpy as np
 from typing import List, Tuple
 import torch
@@ -46,7 +47,7 @@ def get_atom_features(atom) -> List[int]:
     symbol_encoded = one_hot_encode_symbol(atom.GetSymbol())
     degree = atom.GetDegree()
     number_of_hydrogens = atom.GetTotalNumHs()
-    implicet_valence = atom.GetImplicitValence()
+    implicet_valence = atom.GetValence(ValenceType.IMPLICIT)
     is_aromatic = int(atom.GetIsAromatic())
 
     return symbol_encoded + [degree, number_of_hydrogens, implicet_valence, is_aromatic]
