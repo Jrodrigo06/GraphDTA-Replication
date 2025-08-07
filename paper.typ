@@ -40,3 +40,14 @@ dadada
 = Graph Neural Networks
 == Basic Overview
 So Graph Neural Networks (GNNs) work similarly to regular neural networks, but they are built for graph-structured data. They learn to understand relationships between nodes in a graph through encoding neighboring node information. Pretty much each layer in the GNN gets information from neighboring nodes and uses it (e.g., by summing or averaging) to update the given node's representation through a shared neural transformation. This is done through a process called message passing, where each node sends and receives messages from its neighbors. The GNN learns to aggregate these messages and update the node representations iteratively. This allows the model to learn rich structure-aware embeddings, which is perfect for tasks like drug-target binding affinity prediction where the relationships between atoms in a molecule are crucial.
+
+== GCNs
+So the first approach in the GraphDTA paper is to use a Graph Convolutional Network (GCN). GCNs are a type of GNN that applies convolutional operations on graph-structured data. 
+
+We represent each molecule as an undirected graph $G=(V,E)$ with:
+- $N = |V|$ atoms (nodes),
+- Node features $X in RR^{N × C}$ Where N is the number of atoms and C is the number of features per atoms (13).
+- Adjacency matrix $A in {0,1}^{N × N}$ where $A_{i,j}=1$ if atoms $i$ and $j$ are bonded.
+- Then we have our Degree matrix $D in RR^{N × N}$ where $D_{i,i} = sum_{j=1}^{N} A_{i,j}$ is the degree of node $i$ which is the number of connections a node has plus itself.
+- The normalized weights matrix is $S_(i j)= 1/sqrt(D_(i i) D_(j j) )$ if $A_( i j) = 0$ else $S_(i j) = 0$.
+  - The reason the we used a normalized weight matrix is to prevent the model from being biased towards nodes with high degrees. This helps the model learn more balanced representations of nodes in the graph.
