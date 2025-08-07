@@ -38,3 +38,5 @@ dadada
    Each edge in the graph is made by taking the bonds using RDKit. The bond notes the atom indices and the graph is undirected by making edges both ways. Also the matrix is then tranposed to be used in the GNNs. 
 
 = Graph Neural Networks
+== Basic Overview
+So Graph Neural Networks (GNNs) work similarly to regular neural networks, but they are built for graph-structured data. They learn to understand relationships between nodes in a graph through encoding neighboring node information. Pretty much each layer in the GNN gets information from neighboring nodes and uses it (e.g., by summing or averaging) to update the given node's representation through a shared neural transformation. This is done through a process called message passing, where each node sends and receives messages from its neighbors. The GNN learns to aggregate these messages and update the node representations iteratively. This allows the model to learn rich structure-aware embeddings, which is perfect for tasks like drug-target binding affinity prediction where the relationships between atoms in a molecule are crucial.
