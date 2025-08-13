@@ -7,7 +7,7 @@ class GCNGraphDTA(torch.nn.Module):
     def __init__(
         self,
         node_feat_dim: int = 13,  # numer of atom features
-        hidden_dim:    int = 32,
+        hidden_dim:    int = 128,
         num_layers:   int = 3
     ):
         '''
