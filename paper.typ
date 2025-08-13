@@ -20,7 +20,7 @@
 This paper is a math-first walkthrough of reimplementing GraphDTA (Nguyen et al.) to learn how deep learning models can predict drug–target binding affinity. Instead of summarizing results from the original work, I rebuild the full pipeline, tokenizing protein sequences, representing small molecules as graphs, encoding them with CNNs and Graph Neural Networks, and combining the learned embeddings for regression. Along the way I unpack the math behind 1D convolutions, global pooling, message passing on molecular graphs, and the loss/objective used for affinity prediction.  
 
 = High Level Overview
-dadada
+
 
 = Theorems
 
@@ -44,10 +44,35 @@ So Graph Neural Networks (GNNs) work similarly to regular neural networks, but t
 == GCNs
 So the first approach in the GraphDTA paper is to use a Graph Convolutional Network (GCN). GCNs are a type of GNN that applies convolutional operations on graph-structured data. 
 
+===  High Level Overview
+A GCN layer lets each atom average its neighbors + itself, then passes that summary through the same tiny neural step (a shared set of weights) and a ReLU (keeps positives, zeros out negatives which adds some non-linearity which is essential for deep learning). Stacking layers lets information flow multiple bonds away. Finally, max-pool takes the largest value per feature across all atoms, giving one vector for the molecule.
+
+
+=== Techical Overview
 We represent each molecule as an undirected graph $G=(V,E)$ with:
 - $N = |V|$ atoms (nodes),
 - Node features $X in RR^{N × C}$ Where N is the number of atoms and C is the number of features per atoms (13).
+- We add self-loops: $tilde(A) = A + I$ Where the degree matrix is $tilde(D) in RR^(N × N)$ with $tilde(D)_(i i) = sum_(j = 1)^(N) tilde(A)_(i j)$
 - Adjacency matrix $A in {0,1}^{N × N}$ where $A_{i,j}=1$ if atoms $i$ and $j$ are bonded.
 - Then we have our Degree matrix $D in RR^{N × N}$ where $D_{i,i} = sum_{j=1}^{N} A_{i,j}$ is the degree of node $i$ which is the number of connections a node has plus itself.
-- The normalized weights matrix is $S_(i j)= 1/sqrt(D_(i i) D_(j j) )$ if $A_( i j) = 0$ else $S_(i j) = 0$.
+- The normalized weights matrix is $S_(i j)= 1/sqrt(D_(i i) D_(j j) )$ if $A_( i j) = 1$ else $S_(i j) = 0$.
   - The reason the we used a normalized weight matrix is to prevent the model from being biased towards nodes with high degrees. This helps the model learn more balanced representations of nodes in the graph.
+- A single GCN layer updates node features by degree-aware neighbor avergaging followed by a shared linear map and ReLU:$ H^((l + 1)) = "ReLU"(S H^((l))W^((l))) "with" H^((l)) in RR ^(N × C_l) "and" W^((l)) in RR^(C_l × C_(l+1)) $
+  - So what this equation means is that we take the current node features $H^((l))$, multiply it by the normalized weights matrix $S$, and then apply a linear transformation with weights $W^((l))$ followed by a ReLU activation function. This allows the model to learn complex relationships between nodes in the graph while preventing overfitting.
+- Graph-level readout: after $L$ layers, pool node embeddings with global max to get one vector per molecule:
+  $h_G[j]= "max"_{v in V} H^((L))_{v,j}$ (permutation-invariant).
+   - This means that we take the maximum value of each feature across all nodes in the graph to create a single vector representation for the entire molecule. This is important because it allows us to capture the most important features of the molecule.
+
+=== GCN Notation → Plain English 
+- $G=(V,E)$: molecule as a graph (atoms $V$, bonds $E$); $N=|V|$.
+- $H^((0)) = X in RR^(N × C)$: initial node features (13 per atom).
+- $A in {0,1}^(N × N)$: adjacency; $A_(i j)=1$ if atoms $i$ and $j$ are bonded.
+- $tilde(A) = A + I$: add self-loops so each atom keeps its own signal.
+- $tilde(D)_(i i) = sum_(j=1)^(N) tilde(A)_(i j)$: degree from $tilde(A)$ (neighbors + self).
+- $S = tilde(D)^(-1/2) * tilde(A) * tilde(D)^(-1/2)$: normalized neighbor-averaging weights  
+  (if $tilde(A)_(i j)=1$, then $S_(i j) = 1/sqrt(tilde(D)_(i i) * tilde(D)_(j j))$, else $0$).
+- $W^((l)) in RR^(C_l × C_(l+1))$: shared linear map (like a dense layer) changing feature width.
+- Update rule: $H^((l+1)) = "ReLU"( S * H^((l)) * W^((l)) )$  
+  → average neighbors (incl. self) → remix features → keep positives.
+- Graph readout (global max): $h_G[j] = "max"_(v in V) H^((L))_(v,j)$ → one $1 × C_L$ vector per molecule.
+- Shapes at a glance: $H^((0)): N × 13 → H^((1)): N × 32 → H^((3)): N × 32 →_( "max-pool" ) h_G: 1 × 32$.
