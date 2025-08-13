@@ -25,6 +25,13 @@ class GCNGraphDTA(torch.nn.Module):
         for _ in range(num_layers - 1):
             self.convs.append(GCNConv(hidden_dim, hidden_dim))
         
+        self.prot_emb_dim = 128  # Dimension of protein embedding 
+        self.fc = torch.nn.Sequential(
+            torch.nn.Linear(hidden_dim + self.prot_emb_dim, 256),
+            torch.nn.ReLU(),
+            torch.nn.Linear(256, 1)
+        )
+        
     def forward(self, data, prot_vec):
         """
         data.x          [total_nodes, node_feat_dim]
@@ -39,6 +46,8 @@ class GCNGraphDTA(torch.nn.Module):
             x = F.relu(x)              
         
   
-        drug_graph_vec = global_max_pool(x, batch)  
+        drug_graph_vec = global_max_pool(x, batch) 
+        combined_vec = torch.cat([drug_graph_vec, prot_vec], dim=1) # This combines drug and protein features
+        out = self.fc(combined_vec)  # Final prediction layer 
 
-        return drug_graph_vec
+        return out
