@@ -42,7 +42,7 @@ class ProteinEncoder(nn.Module):
         c2 = self.maxpool(self.relu(self.conv2(x))).squeeze(-1)  
         c3 = self.maxpool(self.relu(self.conv3(x))).squeeze(-1)
 
-        convolutional_concat = torch.cat([c1, c2, c3], dim=1)  # Concatenate along the channel dimension
+        convolutional_concat = torch.cat([c1, c2, c3], dim=1) 
 
-        output = self.fc(convolutional_concat)  # Fully connected layer
+        output = self.fc(convolutional_concat)  
         return output  # Output shape: [batch_size, output_dim]

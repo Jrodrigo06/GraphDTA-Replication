@@ -8,4 +8,4 @@ def test_protein_encoder():
 
     enc = ProteinEncoder()
     out = enc(batch)
-    assert out.shape == (len(seqs), 128)
+    assert out.shape == (3, 128)

@@ -76,3 +76,21 @@ We represent each molecule as an undirected graph $G=(V,E)$ with:
   → average neighbors (incl. self) → remix features → keep positives.
 - Graph readout (global max): $h_G[j] = "max"_(v in V) H^((L))_(v,j)$ → one $1 × C_L$ vector per molecule.
 - Shapes at a glance: $H^((0)): N × 13 → H^((1)): N × 32 → H^((3)): N × 32 →_( "max-pool" ) h_G: 1 × 32$.
+
+=== Results 
+#figure(
+  table(
+    columns: 4,
+    stroke: black,
+
+    table.header[Protein rep.][Compound rep.][CI][MSE],
+    [1D], [Graph], [0.8523], [0.3536],
+
+  ),
+  caption: [Results from self tests of the GCN model],
+) 
+So the GCN model achieved a similar CI score to the original paper (0.889) but a significantly worser MSE (0.3536 vs 0.139). This may be due to the fact that I had to change the batch size to 64 due to memory constraints. The original paper used a batch size of 512. 
+Ontop of that I wasn't sure of their exact protein encoder structure.
+
+== GATs 
+Graph Attention Networks are Graph Neural Networks   
