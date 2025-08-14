@@ -80,11 +80,11 @@ We represent each molecule as an undirected graph $G=(V,E)$ with:
 === Results 
 #figure(
   table(
-    columns: 4,
+    columns: 5,
     stroke: black,
 
-    table.header[Protein rep.][Compound rep.][CI][MSE],
-    [1D], [Graph], [0.8523], [0.3536],
+    table.header[Dataset][Protein rep.][Compound rep.][CI][MSE],
+    [Davis],[1D], [Graph], [0.8523], [0.3536],
 
   ),
   caption: [Results from self tests of the GCN model],
@@ -93,4 +93,9 @@ So the GCN model achieved a similar CI score to the original paper (0.889) but a
 Ontop of that I wasn't sure of their exact protein encoder structure.
 
 == GATs 
-Graph Attention Networks are Graph Neural Networks   
+Graph Attention Networks are a variant of Graph Neural Networks that use attention mechanisms for feature learning on graphs.
+
+=== High Level Overview
+GATs differ from Graph Neural Networks as they learn which neighbors matter the most, by assigning an attention coefficient to each neighbor. These coefficients are computed through a self-attention mechanism, and by assigning different weights to different neighbors.
+
+=== Technical Overview

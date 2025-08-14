@@ -13,13 +13,7 @@ BATCH = 64
 EPOCHS = 50
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print("Using device:", device)
-print("CUDA available:", torch.cuda.is_available())
-print("Torch version:", torch.__version__, "| CUDA runtime:", torch.version.cuda)
-print("Device count:", torch.cuda.device_count())
-print("Visible devices:", os.environ.get("CUDA_VISIBLE_DEVICES"))
-if torch.cuda.is_available():
-    print("GPU 0:", torch.cuda.get_device_name(0))
+
 TORCH_SEED = 42
 torch.manual_seed(TORCH_SEED)
 
