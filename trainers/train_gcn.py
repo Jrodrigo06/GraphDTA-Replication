@@ -114,7 +114,7 @@ def evaluate(loader, gcn_model, prot_encoder, device):
 
 def main():
     
-    dataSet = GraphDTAPklDataset("data/processed_davis.pkl")
+    dataSet = GraphDTAPklDataset("data/processed_kiba.pkl")
     len_ds = len(dataSet)
     train_size = int(0.8 * len_ds)
     val_size = int(0.1 * len_ds)

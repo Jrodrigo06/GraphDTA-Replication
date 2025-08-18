@@ -85,6 +85,7 @@ We represent each molecule as an undirected graph $G=(V,E)$ with:
 
     table.header[Dataset][Protein rep.][Compound rep.][CI][MSE],
     [Davis],[1D], [Graph], [0.8523], [0.3536],
+    [Kiba], [1D], [Graph], [0.7978], [0.3089]
 
   ),
   caption: [Results from self tests of the GCN model],
@@ -98,4 +99,14 @@ Graph Attention Networks are a variant of Graph Neural Networks that use attenti
 === High Level Overview
 GATs differ from Graph Neural Networks as they learn which neighbors matter the most, by assigning an attention coefficient to each neighbor. These coefficients are computed through a self-attention mechanism, and by assigning different weights to different neighbors.
 
-=== Technical Overview
+=== GAT (Graph Attention Networks) — Technical Overview
+We use the same graph setup: a molecule as an undirected graph G=(V, E) with
+- N = |V| atoms (nodes),
+- Node features are stored in a matrix $X in RR^(N × C) ("here" C = 13)$.
+
+Each GAT layer does:
+- Linear projection (turn raw features into hidden features)
+  - Equation: $z_i = W x_i$
+  - W is a mtraix that reshapes or re-weights the input features
+    - At first W is initalized randomly and is the matrix of learnable parameters. Throughout training it updates through backpropagation to help the model make better predictions 
+  - This helps the model learn a better representation of each atom
