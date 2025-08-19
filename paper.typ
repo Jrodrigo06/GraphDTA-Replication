@@ -110,3 +110,15 @@ Each GAT layer does:
   - W is a mtraix that reshapes or re-weights the input features
     - At first W is initalized randomly and is the matrix of learnable parameters. Throughout training it updates through backpropagation to help the model make better predictions 
   - This helps the model learn a better representation of each atom
+
+- Compute edge scores (how important neighnor j is to node i):
+  - Equation:
+    $e_(i j) = "LeakyReLU"(a^T [z_i || z_j])$
+  - What this means:
+    - Concatenate (||) node i's hidden vector $z_i "with neighbor " j "'s with hidden vector" z_j$.
+    - Multiply by a small vector $a$ (learned parameters).
+    - Apply LeakyReLU:
+      - Regular ReLU just turns any negative number to zero
+      - LeakyReLU = $max(0,x) + "negative_slope" * min(0,x)$
+        - So numbers below 0 are multiplied by a miniscule negative slope in order to preserve information
+      -
