@@ -107,7 +107,7 @@ We use the same graph setup: a molecule as an undirected graph G=(V, E) with
 Each GAT layer does:
 - Linear projection (turn raw features into hidden features)
   - Equation: $z_i = W x_i$
-  - W is a mtraix that reshapes or re-weights the input features
+  - W is a matrix that reshapes or re-weights the input features
     - At first W is initalized randomly and is the matrix of learnable parameters. Throughout training it updates through backpropagation to help the model make better predictions 
   - This helps the model learn a better representation of each atom
 
@@ -121,4 +121,6 @@ Each GAT layer does:
       - Regular ReLU just turns any negative number to zero
       - LeakyReLU = $max(0,x) + "negative_slope" * min(0,x)$
         - So numbers below 0 are multiplied by a miniscule negative slope in order to preserve information
-      -
+- Turn edge scores into attention weights (telling the node how much to "listen" to each neighbor):
+  - Equation:
+    $alpha_(i j) = "softmax"_(j in N(i)) (e_(i j))$
