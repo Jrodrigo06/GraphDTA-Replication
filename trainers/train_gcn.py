@@ -13,6 +13,7 @@ BATCH = 64
 EPOCHS = 50
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(device)
 
 TORCH_SEED = 42
 torch.manual_seed(TORCH_SEED)
@@ -155,7 +156,7 @@ def main():
                 'protein_encoder_state_dict': proteinEncoder.state_dict(),
             }, "checkpoints/best_model.pth")
     
-    ckpt = torch.load("checkpoints/best_model.pth", map_location=device)
+    ckpt = torch.load("checkpoints/best_model.pth", map_location=device, weights_only=False)
     gcnModel.load_state_dict(ckpt['model_state_dict'])
     proteinEncoder.load_state_dict(ckpt['protein_encoder_state_dict'])
     test_mse, test_ci = evaluate(test_loader, gcnModel, proteinEncoder, device)

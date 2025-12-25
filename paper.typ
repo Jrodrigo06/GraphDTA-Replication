@@ -20,9 +20,8 @@
 This paper is a math-first walkthrough of reimplementing GraphDTA (Nguyen et al.) to learn how deep learning models can predict drug–target binding affinity. Instead of summarizing results from the original work, I rebuild the full pipeline, tokenizing protein sequences, representing small molecules as graphs, encoding them with CNNs and Graph Neural Networks, and combining the learned embeddings for regression. Along the way I unpack the math behind 1D convolutions, global pooling, message passing on molecular graphs, and the loss/objective used for affinity prediction.  
 
 = High Level Overview
+So the GraphDTA pipeline works like this: we take a drug (represented as a SMILES string) and a protein (represented as an amino acid sequence), encode them separately, then combine their embeddings to predict binding affinity. For the drug, we convert the SMILES string into a molecular graph where atoms are nodes and bonds are edges. Then we run this graph through a Graph Neural Network (either GCN or GAT) which learns to represent the molecule as a single vector. For the protein, we one-hot encode each amino acid and run the sequence through a 1D CNN that also outputs a single vector. Finally, we concatenate these two vectors and pass them through a few fully connected layers to get our affinity prediction. The whole thing is trained end-to-end using MSE loss.
 
-
-= Theorems
 
 = Protein encoding
   == One Hot Encoding
@@ -48,7 +47,7 @@ So the first approach in the GraphDTA paper is to use a Graph Convolutional Netw
 A GCN layer lets each atom average its neighbors + itself, then passes that summary through the same tiny neural step (a shared set of weights) and a ReLU (keeps positives, zeros out negatives which adds some non-linearity which is essential for deep learning). Stacking layers lets information flow multiple bonds away. Finally, max-pool takes the largest value per feature across all atoms, giving one vector for the molecule.
 
 
-=== Techical Overview
+=== Technical Overview
 We represent each molecule as an undirected graph $G=(V,E)$ with:
 - $N = |V|$ atoms (nodes),
 - Node features $X in RR^{N × C}$ Where N is the number of atoms and C is the number of features per atoms (13).
@@ -57,7 +56,7 @@ We represent each molecule as an undirected graph $G=(V,E)$ with:
 - Then we have our Degree matrix $D in RR^{N × N}$ where $D_{i,i} = sum_{j=1}^{N} A_{i,j}$ is the degree of node $i$ which is the number of connections a node has plus itself.
 - The normalized weights matrix is $S_(i j)= 1/sqrt(D_(i i) D_(j j) )$ if $A_( i j) = 1$ else $S_(i j) = 0$.
   - The reason the we used a normalized weight matrix is to prevent the model from being biased towards nodes with high degrees. This helps the model learn more balanced representations of nodes in the graph.
-- A single GCN layer updates node features by degree-aware neighbor avergaging followed by a shared linear map and ReLU:$ H^((l + 1)) = "ReLU"(S H^((l))W^((l))) "with" H^((l)) in RR ^(N × C_l) "and" W^((l)) in RR^(C_l × C_(l+1)) $
+- A single GCN layer updates node features by degree-aware neighbor averaging followed by a shared linear map and ReLU: $H^((l + 1)) = "ReLU"(S H^((l))W^((l)))$ where $H^((l)) in RR^(N × C_l)$ and $W^((l)) in RR^(C_l × C_(l+1))$
   - So what this equation means is that we take the current node features $H^((l))$, multiply it by the normalized weights matrix $S$, and then apply a linear transformation with weights $W^((l))$ followed by a ReLU activation function. This allows the model to learn complex relationships between nodes in the graph while preventing overfitting.
 - Graph-level readout: after $L$ layers, pool node embeddings with global max to get one vector per molecule:
   $h_G[j]= "max"_{v in V} H^((L))_{v,j}$ (permutation-invariant).
@@ -108,14 +107,14 @@ Each GAT layer does:
 - Linear projection (turn raw features into hidden features)
   - Equation: $z_i = W x_i$
   - W is a matrix that reshapes or re-weights the input features
-    - At first W is initalized randomly and is the matrix of learnable parameters. Throughout training it updates through backpropagation to help the model make better predictions 
+    - At first W is initialized randomly and is the matrix of learnable parameters. Throughout training it updates through backpropagation to help the model make better predictions 
   - This helps the model learn a better representation of each atom
 
-- Compute edge scores (how important neighnor j is to node i):
+- Compute edge scores (how important neighbor j is to node i):
   - Equation:
-    $e_(i j) = "LeakyReLU"(a^T [z_i || z_j])$
+    $e_(i j) = "LeakyReLU"(a^T [z_i; z_j])$
   - What this means:
-    - Concatenate (||) node i's hidden vector $z_i "with neighbor " j "'s with hidden vector" z_j$.
+    - Concatenate node $i$'s hidden vector $z_i$ with neighbor $j$'s hidden vector $z_j$ (denoted as $[z_i; z_j]$).
     - Multiply by a small vector $a$ (learned parameters).
     - Apply LeakyReLU:
       - Regular ReLU just turns any negative number to zero
@@ -124,3 +123,54 @@ Each GAT layer does:
 - Turn edge scores into attention weights (telling the node how much to "listen" to each neighbor):
   - Equation:
     $alpha_(i j) = "softmax"_(j in N(i)) (e_(i j))$
+  - What this means:
+    - We apply softmax over all neighbors $j in N(i)$ (including $i$ itself if self-loops are added)
+    - This normalizes the edge scores so they sum to 1, making them proper attention weights
+    - Higher $e_(i j)$ values get higher attention weights, meaning node $i$ will pay more attention to neighbor $j$
+- Aggregate neighbor features weighted by attention:
+  - Equation:
+    $h_i^((l+1)) = "ReLU"(sum_(j in N(i)) alpha_(i j) z_j)$
+  - What this means:
+    - Instead of averaging neighbors like GCN, GAT takes a weighted sum where each neighbor's contribution is scaled by its attention weight
+    - Neighbors with higher attention weights contribute more to the updated node representation
+    - This allows the model to focus on the most relevant neighbors for each atom
+- Multi-head attention (optional but common):
+  - We can run $K$ independent attention mechanisms in parallel (called "heads")
+  - Each head learns different attention patterns
+  - The outputs from all $K$ heads are concatenated to form the final representation.
+  - This gives the model more expressive power to capture different types of relationships
+- Graph-level readout: after $L$ layers, pool node embeddings with global max to get one vector per molecule:
+  $h_G[j]= "max"_(v in V) H^((L))_(v,j)$ (same as GCN)
+
+=== GAT Notation → Plain English 
+- $G=(V,E)$: molecule as a graph (atoms $V$, bonds $E$); $N=|V|$.
+- $H^((0)) = X in RR^(N × C)$: initial node features (13 per atom).
+- $z_i = W x_i$: linear projection of node $i$'s features into hidden space.
+- $e_(i j) = "LeakyReLU"(a^T [z_i; z_j])$: edge score measuring how important neighbor $j$ is to node $i$ (where $[z_i; z_j]$ denotes concatenation).
+  - $a$ is a learned attention vector that helps determine importance
+  - LeakyReLU allows small negative values to pass through (unlike regular ReLU)
+- $alpha_(i j) = "softmax"_(j in N(i)) (e_(i j))$: attention weights (normalized edge scores).
+  - These weights tell node $i$ how much to "listen" to each neighbor
+  - They sum to 1 over all neighbors, making them a proper probability distribution
+- Update rule: $h_i^((l+1)) = "ReLU"(sum_(j in N(i)) alpha_(i j) z_j)$
+  → weighted sum of neighbors (by attention) → remix features → keep positives.
+- Multi-head: run $K$ attention mechanisms in parallel and concatenate results for richer representations.
+- Graph readout (global max): $h_G[j] = "max"_(v in V) H^((L))_(v,j)$ → one $1 × C_L$ vector per molecule.
+- Shapes at a glance: $H^((0)): N × 13 →_(text("GAT layer 1")) H^((1)): N × ("hidden" × "heads") →_(text("GAT layer 2")) H^((2)): N × ("hidden" × "heads") →_(text("GAT layer 3")) H^((3)): N × "hidden" →_(text("max-pool")) h_G: 1 × "hidden"$.
+
+=== Results 
+#figure(
+  table(
+    columns: 5,
+    stroke: black,
+
+    table.header[Dataset][Protein rep.][Compound rep.][CI][MSE],
+    [Kiba], [1D], [Graph], [0.7956], [.3512]
+
+  ),
+  caption: [Results from self tests of the GAT model],
+) 
+So the GAT model uses attention mechanisms to learn which neighbors are most important for each atom, allowing it to focus on the most relevant parts of the molecule. This can potentially lead to better representations compared to GCN's uniform neighbor averaging, especially for molecules where certain atomic interactions are more critical than others.
+
+= Conclusion
+Through this replication, I've learned how graph neural networks can capture molecular structure in a way that string-based representations can't. The GCN and GAT models both show that representing drugs as graphs and using message passing to learn embeddings works well for predicting drug-target binding affinity. While my results don't exactly match the original paper (likely due to implementation differences and hyperparameter choices), the models still achieve reasonable performance with CI scores around 0.80, which shows they're learning meaningful patterns. The attention mechanism in GAT adds an interesting layer of interpretability since we can see which neighbors each atom focuses on, though in practice both approaches work well. Overall, this project gave me a solid understanding of how to apply graph neural networks to molecular data and how to combine different types of neural architectures (CNNs for sequences, GNNs for graphs) for a single prediction task.
